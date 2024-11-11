@@ -1,6 +1,6 @@
 <?php
 
-define('SMARTCAPTCHA_SERVER_KEY','ysc2_9ybtZeKUOhsku9tCLSGllQ9om6Qn8bCajTwfdeKZd37b4372');
+define('SMARTCAPTCHA_SERVER_KEY','');
 function check_captcha($token) {
     $ch = curl_init();
     $args = http_build_query([

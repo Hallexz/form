@@ -1,7 +1,6 @@
 <?php
 
-define('SMARTCAPTCHA_SERVER_KEY');
-
+define('SMARTCAPTCHA_SERVER_KEY','ysc2_9ybtZeKUOhsku9tCLSGllQ9om6Qn8bCajTwfdeKZd37b4372');
 function check_captcha($token) {
     $ch = curl_init();
     $args = http_build_query([
@@ -15,7 +14,6 @@ function check_captcha($token) {
     $server_output = curl_exec($ch);
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-
     if ($httpcode !== 200) {
         echo "Ошибка при обращении к серверу капчи: код=$httpcode; сообщение=$server_output\n";
         return false;

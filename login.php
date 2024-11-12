@@ -85,10 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <input type="text" name="login" required placeholder="Телефон или Почта">
     <input type="password" name="password" required placeholder="Пароль">
     <div
-        style="height: 100px"
-        id="captcha-container"
-        class="smart-captcha"
-        data-sitekey="ysc1_9ybtZeKUOhsku9tCLSGlfzWeIsly1w8YXScedhoI6aa8cba3"
+            style="height: 100px"
+            id="captcha-container"
+            class="smart-captcha"
+            data-sitekey="ysc1_9ybtZeKUOhsku9tCLSGlfzWeIsly1w8YXScedhoI6aa8cba3"
     ></div>
     <button type="submit">Войти</button>
 </form>

@@ -18,29 +18,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];  // Пароль из формы
     $captchaToken = $_POST['smart-token'] ?? '';  // Токен для проверки капчи (если он есть)
 
+    // Массив для ошибок
+    $errors = [];
+
     // Проверка капчи
     if (!check_captcha($captchaToken)) {
-        echo "Проверка капчи не пройдена! Попробуйте снова.";  // Выводим сообщение, если капча не пройдена
-        exit; // Завершаем выполнение скрипта
+        $errors[] = "Проверка капчи не пройдена! Попробуйте снова.";  // Добавляем ошибку в массив
     }
 
     // Определяем тип логина (телефон или email)
     $loginType = validatePhoneNumber($login) ? 'phone' : (validateEmail($login) ? 'email' : null);
     if (!$loginType) {
-        echo "Некорректный формат логина. Используйте email или номер телефона.";  // Сообщение об ошибке
-        exit; // Завершаем выполнение скрипта
+        $errors[] = "Некорректный формат логина. Используйте email или номер телефона.";  // Добавляем ошибку в массив
     }
 
     // Проверка наличия пользователя в базе данных
-    $user = getUserByLogin($login, $loginType);
-    if (!$user) {
-        echo "Пользователь с таким логином не найден. Проверьте email или номер телефона.";  // Сообщение о несуществующем пользователе
-        exit; // Завершаем выполнение скрипта
+    if (!$loginType || !$user = getUserByLogin($login, $loginType)) {
+        $errors[] = "Пользователь с таким логином не найден. Проверьте email или номер телефона.";  // Добавляем ошибку в массив
     }
 
     // Проверка пароля
-    if (!password_verify($password, $user['password'])) {
-        echo "Неправильный пароль!";  // Сообщение о неверном пароле
+    if (empty($errors) && !password_verify($password, $user['password'])) {
+        $errors[] = "Неправильный пароль!";  // Добавляем ошибку в массив
+    }
+
+    // Если есть ошибки, сохраняем их в сессии и перенаправляем обратно
+    if (!empty($errors)) {
+        $_SESSION['errors'] = $errors;
+        header("Location: login.php");
         exit; // Завершаем выполнение скрипта
     }
 
@@ -94,3 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!-- Скрипт для загрузки Yandex CAPTCHA -->
 <script src="https://smartcaptcha.yandexcloud.net/captcha.js" defer></script>
+
+<?php
+// Отображаем ошибки, если они есть
+if (isset($_SESSION['errors'])) {
+    foreach ($_SESSION['errors'] as $error) {
+        echo "<p style='color: red;'>$error</p>";
+    }
+    unset($_SESSION['errors']);  // Очищаем ошибки после отображения
+}
+?>

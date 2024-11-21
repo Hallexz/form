@@ -15,6 +15,9 @@ if (!isUserLoggedIn()) {
 // Получаем данные текущего пользователя по ID из сессии
 $user = getUserById($_SESSION['user_id']);
 
+// Массив для ошибок
+$errors = [];
+
 // Обработка данных формы
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Проверка, если нажата кнопка выхода
@@ -31,9 +34,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'] ?? '';  // Если пароль не указан, оставляем пустое значение
 
     // Валидация данных (проверка имени, телефона и email)
-    if (!validateName($name) || !validatePhoneNumber($phone) || !validateEmail($email)) {
-        echo "Некорректные данные!";  // Если данные некорректные, выводим сообщение об ошибке
-        exit;  // Завершаем выполнение скрипта
+    if (!validateName($name)) {
+        $errors[] = "Некорректное имя!";
+    }
+    if (!validatePhoneNumber($phone)) {
+        $errors[] = "Некорректный телефон!";
+    }
+    if (!validateEmail($email)) {
+        $errors[] = "Некорректный email!";
+    }
+
+    // Если есть ошибки, сохраняем их в сессии и перенаправляем
+    if (!empty($errors)) {
+        $_SESSION['errors'] = $errors;
+        header("Location: profile.php");
+        exit; // Завершаем выполнение скрипта
     }
 
     // Если введен новый пароль, то хешируем его, иначе оставляем старый пароль
@@ -41,9 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Обновляем данные пользователя в базе данных
     if (updateUser($_SESSION['user_id'], $name, $phone, $email, $passwordHash)) {
-        echo "Данные обновлены!";  // Сообщение об успешном обновлении данных
+        $_SESSION['success'] = "Данные обновлены!";
+        header("Location: profile.php");  // Перенаправляем на страницу профиля
+        exit; // Завершаем выполнение скрипта
     } else {
-        echo "Ошибка!";  // Сообщение об ошибке при обновлении данных
+        $_SESSION['error'] = "Ошибка при обновлении данных!";
+        header("Location: profile.php");
+        exit; // Завершаем выполнение скрипта
     }
 }
 
@@ -57,6 +76,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 <h1>Редактирование профиля</h1>
+
+<!-- Вывод ошибок из сессии -->
+<?php
+if (isset($_SESSION['errors'])) {
+    foreach ($_SESSION['errors'] as $error) {
+        echo "<p style='color: red;'>$error</p>";
+    }
+    unset($_SESSION['errors']);  // Очищаем ошибки после отображения
+}
+
+if (isset($_SESSION['success'])) {
+    echo "<p style='color: green;'>".$_SESSION['success']."</p>";
+    unset($_SESSION['success']);  // Очищаем сообщение об успехе после отображения
+}
+
+if (isset($_SESSION['error'])) {
+    echo "<p style='color: red;'>".$_SESSION['error']."</p>";
+    unset($_SESSION['error']);  // Очищаем сообщение об ошибке после отображения
+}
+?>
 
 <!-- Форма для редактирования данных пользователя -->
 <form method="POST" action="">

@@ -33,15 +33,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);  // Убираем пробелы по краям email
     $password = $_POST['password'] ?? '';  // Если пароль не указан, оставляем пустое значение
 
-    // Валидация данных (проверка имени, телефона и email)
+    // Валидация данных (проверка имени и email)
     if (!validateName($name)) {
         $errors[] = "Некорректное имя!";
     }
-    if (!validatePhoneNumber($phone)) {
-        $errors[] = "Некорректный телефон!";
-    }
+
     if (!validateEmail($email)) {
         $errors[] = "Некорректный email!";
+    }
+
+    // Проверяем телефон только если он не пустой
+    if (!empty($phone) && !validatePhoneNumber($phone)) {
+        $errors[] = "Некорректный телефон!";
+    }
+
+    // Проверяем уникальность нового телефона и email, если они изменены
+    if ($phone !== $user['phone'] && !empty($phone) && !isContactUnique($phone, 'phone', $_SESSION['user_id'])) {
+        $errors[] = "Этот телефон уже зарегистрирован!";
+    }
+
+    if ($email !== $user['email'] && !isContactUnique($email, 'email', $_SESSION['user_id'])) {
+        $errors[] = "Этот email уже зарегистрирован!";
     }
 
     // Если есть ошибки, сохраняем их в сессии и перенаправляем
@@ -100,18 +112,18 @@ if (isset($_SESSION['error'])) {
 <!-- Форма для редактирования данных пользователя -->
 <form method="POST" action="">
     <label for="name">Имя:</label>
-    <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($user['name']); ?>" required>  <!-- Поле для имени пользователя -->
+    <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($user['name']); ?>" required>
     <br>
     <label for="phone">Телефон:</label>
-    <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>" required>  <!-- Поле для телефона -->
+    <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>"> <!-- Сделано необязательным -->
     <br>
     <label for="email">Email:</label>
-    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>  <!-- Поле для email -->
+    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
     <br>
     <label for="password">Пароль (оставьте пустым, если не хотите менять):</label>
-    <input type="password" id="password" name="password">  <!-- Поле для пароля -->
+    <input type="password" id="password" name="password">
     <br>
-    <button type="submit">Сохранить изменения</button>  <!-- Кнопка для отправки формы -->
+    <button type="submit">Сохранить изменения</button>
 </form>
 
 <!-- Форма для выхода из учетной записи -->
